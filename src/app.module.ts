@@ -6,6 +6,12 @@ import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { User } from './user/user.entity';
+import { Product } from './product/product.entity';
+import { ProductModule } from './product/product.module';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { CategoryModule } from './category/category.module';
+import { Category } from './category/category.entity';
 
 @Module({
   imports: [
@@ -20,14 +26,22 @@ import { User } from './user/user.entity';
         username: config.get('DB_USER', 'root'),
         password: config.get('DB_PASS', 'root'),
         database: config.get('DB_NAME', 'quickcart'),
-        entities: [User],
-        synchronize: false, // disabled as the table already exists and was causing conflicts
+        entities: [User, Product, Category],
+        synchronize: true, // enabled to automatically create the products table
       }),
     }),
     UserModule,
     AuthModule,
+    ProductModule,
+    CategoryModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
 export class AppModule { }
