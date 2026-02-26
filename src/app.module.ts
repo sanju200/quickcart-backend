@@ -9,9 +9,12 @@ import { User } from './user/user.entity';
 import { Product } from './product/product.entity';
 import { ProductModule } from './product/product.module';
 import { APP_GUARD } from '@nestjs/core';
-import { JwtAuthGuard } from './auth/jwt-auth.guard';
-import { CategoryModule } from './category/category.module';
-import { Category } from './category/category.entity';
+import { JwtAuthGuard } from './auth/jwt-auth.guard.js';
+import { CategoryModule } from './category/category.module.js';
+import { Category } from './category/category.entity.js';
+import { OrderModule } from './order/order.module.js';
+import { Order } from './order/order.entity.js';
+import { OrderItem } from './order/order-item.entity.js';
 
 @Module({
   imports: [
@@ -26,7 +29,7 @@ import { Category } from './category/category.entity';
         username: config.get('DB_USER', 'root'),
         password: config.get('DB_PASS', 'root'),
         database: config.get('DB_NAME', 'quickcart'),
-        entities: [User, Product, Category],
+        entities: [User, Product, Category, Order, OrderItem],
         synchronize: true, // enabled to automatically create the products table
       }),
     }),
@@ -34,6 +37,7 @@ import { Category } from './category/category.entity';
     AuthModule,
     ProductModule,
     CategoryModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [
