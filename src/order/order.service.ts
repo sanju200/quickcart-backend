@@ -52,6 +52,7 @@ export class OrderService {
             orderItem.quantity = itemDto.quantity;
             orderItem.price = itemDto.price;
             orderItem.totalAmount = itemDto.quantity * itemDto.price;
+            orderItem.productId = itemDto.productId;
             orderItems.push(orderItem);
         }
 

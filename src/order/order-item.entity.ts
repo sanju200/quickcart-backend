@@ -4,6 +4,7 @@ import {
     Column,
     ManyToOne,
     BeforeInsert,
+    RelationId,
 } from 'typeorm';
 import { Order } from './order.entity.js';
 import { Product } from '../product/product.entity.js';
@@ -40,4 +41,7 @@ export class OrderItem {
 
     @Column({ type: 'decimal', precision: 10, scale: 2 })
     totalAmount: number;
+
+    @RelationId((orderItem: OrderItem) => orderItem.product)
+    productId: string;
 }
