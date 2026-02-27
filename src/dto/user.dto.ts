@@ -4,6 +4,7 @@ export class CreateUserDto {
     phone: string;
     password?: string;
     profile_pic_url?: string;
+    addresses?: string;
 }
 
 export class UpdateUserDto {
@@ -13,4 +14,5 @@ export class UpdateUserDto {
     password?: string;
     profile_pic_url?: string;
     is_verified?: boolean;
+    addresses?: string;
 }

@@ -43,6 +43,9 @@ export class Order {
     @Column({ type: 'varchar', length: 15, nullable: true })
     userPhone: string;
 
+    @Column({ type: 'text', nullable: true })
+    address: string;
+
     @OneToMany(() => OrderItem, (item) => item.order, { cascade: true })
     items: OrderItem[];
 

@@ -29,6 +29,9 @@ export class User {
     @Column({ type: 'boolean', default: false })
     is_verified: boolean;
 
+    @Column({ type: 'text', nullable: true })
+    addresses: string | null;
+
     @CreateDateColumn({ type: 'timestamp' })
     created_at: Date;
 

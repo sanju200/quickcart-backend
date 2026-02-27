@@ -29,6 +29,9 @@ export class OrderItem {
     @Column({ type: 'varchar', length: 255 })
     productTitle: string; // snapshots title in case product info changes
 
+    @Column({ type: 'text', nullable: true })
+    productImage: string; // snapshot image URL
+
     @Column({ type: 'int' })
     quantity: number;
 

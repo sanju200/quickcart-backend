@@ -33,6 +33,7 @@ export class OrderService {
         order.userName = createOrderDto.userName;
         order.userEmail = createOrderDto.userEmail;
         order.userPhone = createOrderDto.userPhone;
+        order.address = createOrderDto.address;
         order.totalAmount = createOrderDto.totalAmount;
         order.status = OrderStatus.PLACED; // Default to placed on creation
 
@@ -47,6 +48,7 @@ export class OrderService {
             const orderItem = new OrderItem();
             orderItem.product = product;
             orderItem.productTitle = itemDto.productTitle;
+            orderItem.productImage = itemDto.productImage;
             orderItem.quantity = itemDto.quantity;
             orderItem.price = itemDto.price;
             orderItem.totalAmount = itemDto.quantity * itemDto.price;

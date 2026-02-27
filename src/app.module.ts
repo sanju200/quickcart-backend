@@ -15,6 +15,9 @@ import { Category } from './category/category.entity.js';
 import { OrderModule } from './order/order.module.js';
 import { Order } from './order/order.entity.js';
 import { OrderItem } from './order/order-item.entity.js';
+import { CartModule } from './cart/cart.module';
+import { Cart } from './cart/cart.entity';
+import { CartItem } from './cart/cart-item.entity';
 
 @Module({
   imports: [
@@ -29,7 +32,7 @@ import { OrderItem } from './order/order-item.entity.js';
         username: config.get('DB_USER', 'root'),
         password: config.get('DB_PASS', 'root'),
         database: config.get('DB_NAME', 'quickcart'),
-        entities: [User, Product, Category, Order, OrderItem],
+        entities: [User, Product, Category, Order, OrderItem, Cart, CartItem],
         synchronize: true, // enabled to automatically create the products table
       }),
     }),
@@ -38,6 +41,7 @@ import { OrderItem } from './order/order-item.entity.js';
     ProductModule,
     CategoryModule,
     OrderModule,
+    CartModule,
   ],
   controllers: [AppController],
   providers: [
