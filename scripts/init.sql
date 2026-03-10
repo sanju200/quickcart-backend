@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT,
   profile_pic_url TEXT,
   is_verified BOOLEAN DEFAULT false,
+  addresses JSONB DEFAULT '[]',
   created_at TIMESTAMP DEFAULT now(),
   updated_at TIMESTAMP DEFAULT now()
 );

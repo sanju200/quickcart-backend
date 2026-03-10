@@ -34,6 +34,9 @@ export class Product {
     @Column({ type: 'text' })
     image: string;
 
+    @Column({ type: 'int', default: 0 })
+    stock: number;
+
     @CreateDateColumn({ type: 'timestamp' })
     created_at: Date;
 

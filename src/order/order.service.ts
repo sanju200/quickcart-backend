@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order, OrderStatus } from './order.entity.js';
@@ -45,6 +45,15 @@ export class OrderService {
                 throw new NotFoundException(`Product with ID ${itemDto.productId} not found`);
             }
 
+            // Check stock sufficiency
+            if (product.stock < itemDto.quantity) {
+                throw new BadRequestException(`Insufficient stock for product ${product.name}. Available: ${product.stock}`);
+            }
+
+            // Deduct stock
+            product.stock -= itemDto.quantity;
+            await this.productRepository.save(product);
+
             const orderItem = new OrderItem();
             orderItem.product = product;
             orderItem.productTitle = itemDto.productTitle;
@@ -63,6 +72,14 @@ export class OrderService {
 
     async findAll(): Promise<Order[]> {
         return this.orderRepository.find({
+            relations: ['items', 'user'],
+            order: { created_at: 'DESC' },
+        });
+    }
+
+    async findAllFiltered(where: any): Promise<Order[]> {
+        return this.orderRepository.find({
+            where,
             relations: ['items', 'user'],
             order: { created_at: 'DESC' },
         });
@@ -89,10 +106,78 @@ export class OrderService {
 
     async update(id: string, updateOrderDto: UpdateOrderDto): Promise<Order> {
         const order = await this.findOne(id);
-        if (updateOrderDto.status) {
-            order.status = updateOrderDto.status;
-        }
+
+        // This generic update is now more restrictive for basic fields
+        if (updateOrderDto.userName) order.userName = updateOrderDto.userName;
+        if (updateOrderDto.userEmail) order.userEmail = updateOrderDto.userEmail;
+        if (updateOrderDto.userPhone) order.userPhone = updateOrderDto.userPhone;
+        if (updateOrderDto.address) order.address = updateOrderDto.address;
+
         return this.orderRepository.save(order);
+    }
+
+    async processOrder(id: string): Promise<Order> {
+        const order = await this.findOne(id);
+        this.validateStatusTransition(order.status, OrderStatus.PROCESSING);
+        order.status = OrderStatus.PROCESSING;
+        return this.orderRepository.save(order);
+    }
+
+    async handoverToLogistics(id: string, trackingNumber: string, courierName: string): Promise<Order> {
+        const order = await this.findOne(id);
+        this.validateStatusTransition(order.status, OrderStatus.HANDED_OVER);
+
+        order.status = OrderStatus.HANDED_OVER;
+        order.trackingNumber = trackingNumber;
+        order.courierName = courierName;
+        order.shippedAt = new Date();
+
+        return this.orderRepository.save(order);
+    }
+
+    async updateTransitStatus(id: string): Promise<Order> {
+        const order = await this.findOne(id);
+        this.validateStatusTransition(order.status, OrderStatus.IN_TRANSIT);
+        order.status = OrderStatus.IN_TRANSIT;
+        return this.orderRepository.save(order);
+    }
+
+    async markOutForDelivery(id: string, deliveryPartnerId: string): Promise<Order> {
+        const order = await this.findOne(id);
+        this.validateStatusTransition(order.status, OrderStatus.OUT_FOR_DELIVERY);
+
+        order.status = OrderStatus.OUT_FOR_DELIVERY;
+        order.assignedDeliveryPartnerId = deliveryPartnerId;
+
+        return this.orderRepository.save(order);
+    }
+
+    async completeDelivery(id: string, proofOfDelivery: string): Promise<Order> {
+        const order = await this.findOne(id);
+        this.validateStatusTransition(order.status, OrderStatus.DELIVERED);
+
+        order.status = OrderStatus.DELIVERED;
+        order.proofOfDelivery = proofOfDelivery;
+        order.deliveredAt = new Date();
+
+        return this.orderRepository.save(order);
+    }
+
+    private validateStatusTransition(current: OrderStatus, target: OrderStatus) {
+        const transitions: Record<OrderStatus, OrderStatus[]> = {
+            [OrderStatus.PENDING]: [OrderStatus.PLACED, OrderStatus.CANCELLED],
+            [OrderStatus.PLACED]: [OrderStatus.PROCESSING, OrderStatus.CANCELLED],
+            [OrderStatus.PROCESSING]: [OrderStatus.HANDED_OVER, OrderStatus.CANCELLED],
+            [OrderStatus.HANDED_OVER]: [OrderStatus.IN_TRANSIT, OrderStatus.OUT_FOR_DELIVERY],
+            [OrderStatus.IN_TRANSIT]: [OrderStatus.OUT_FOR_DELIVERY],
+            [OrderStatus.OUT_FOR_DELIVERY]: [OrderStatus.DELIVERED],
+            [OrderStatus.DELIVERED]: [],
+            [OrderStatus.CANCELLED]: [],
+        };
+
+        if (!transitions[current]?.includes(target)) {
+            throw new BadRequestException(`Cannot transition order from ${current} to ${target}`);
+        }
     }
 
     async remove(id: string): Promise<void> {

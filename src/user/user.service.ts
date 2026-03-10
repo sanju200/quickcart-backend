@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit, NotFoundException } from '@nestjs/common';
+import { Injectable, OnModuleInit, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -48,28 +48,89 @@ export class UserService implements OnModuleInit {
     }
 
     async create(createUserDto: CreateUserDto): Promise<User> {
-        const { password, ...userData } = createUserDto;
+        const { password, addresses, ...userData } = createUserDto;
+
+        // Check if email already exists
+        const existingEmail = await this.findByEmail(userData.email);
+        if (existingEmail) {
+            throw new BadRequestException('Email already in use');
+        }
+
+        // Check if phone already exists
+        const existingPhone = await this.userRepository.findOne({ where: { phone: userData.phone } });
+        if (existingPhone) {
+            throw new BadRequestException('Phone number already in use');
+        }
+
         let password_hash: string | null = null;
         if (password) {
             password_hash = await bcrypt.hash(password, 10);
         }
+
+        const normalizedAddresses = this.normalizeAddresses(addresses);
+
         const user = this.userRepository.create({
             ...userData,
             password_hash,
+            addresses: normalizedAddresses,
         });
-        return this.userRepository.save(user);
+
+        try {
+            return await this.userRepository.save(user);
+        } catch (error) {
+            console.error('Error creating user:', error);
+            throw new BadRequestException(`Failed to create user: ${error.message}`);
+        }
     }
 
     async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
         const user = await this.findOne(id);
-        const { password, ...userData } = updateUserDto;
+        const { password, addresses, ...userData } = updateUserDto;
 
         if (password) {
             user.password_hash = await bcrypt.hash(password, 10);
         }
 
+        if (userData.email && userData.email !== user.email) {
+            const emailExists = await this.findByEmail(userData.email);
+            if (emailExists) {
+                throw new BadRequestException('Email already in use');
+            }
+        }
+
+        if (userData.phone && userData.phone !== user.phone) {
+            const phoneExists = await this.userRepository.findOne({ where: { phone: userData.phone } });
+            if (phoneExists) {
+                throw new BadRequestException('Phone number already in use');
+            }
+        }
+
+        if (addresses) {
+            user.addresses = this.normalizeAddresses(addresses);
+        }
+
         Object.assign(user, userData);
         return this.userRepository.save(user);
+    }
+
+    private normalizeAddresses(addresses: any[] | undefined): any[] | null {
+        if (!addresses || addresses.length === 0) return null;
+
+        let hasSelected = false;
+        const normalized = addresses.map((addr) => {
+            if (addr.isSelected && !hasSelected) {
+                hasSelected = true;
+                return { ...addr, isSelected: true };
+            }
+            return { ...addr, isSelected: false };
+        });
+
+        // If no address was marked as selected, default the first one to true
+        if (!hasSelected && normalized.length > 0) {
+            normalized[0].isSelected = true;
+        }
+
+        return normalized;
     }
 
     async remove(id: string): Promise<void> {

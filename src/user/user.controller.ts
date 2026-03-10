@@ -1,12 +1,28 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, ParseUUIDPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, ParseUUIDPipe, UseGuards, Request, UseInterceptors, ClassSerializerInterceptor } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto, UpdateUserDto } from '../dto/user.dto';
 import { User } from './user.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
+@UseInterceptors(ClassSerializerInterceptor)
 @Controller('users')
 export class UserController {
     constructor(private readonly userService: UserService) { }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('me')
+    getMe(@Request() req): Promise<User> {
+        return this.userService.findOne(req.user.userId);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Put('me')
+    updateMe(
+        @Request() req,
+        @Body() updateUserDto: UpdateUserDto,
+    ): Promise<User> {
+        return this.userService.update(req.user.userId, updateUserDto);
+    }
 
     @UseGuards(JwtAuthGuard)
     @Get()

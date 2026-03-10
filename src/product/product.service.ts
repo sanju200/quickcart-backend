@@ -16,6 +16,11 @@ export class ProductService {
         return await this.productRepository.save(product);
     }
 
+    async createBulk(createProductDtos: CreateProductDto[]): Promise<Product[]> {
+        const products = this.productRepository.create(createProductDtos);
+        return await this.productRepository.save(products);
+    }
+
     async findAll(): Promise<Product[]> {
         return await this.productRepository.find();
     }
@@ -31,6 +36,12 @@ export class ProductService {
     async update(id: string, updateProductDto: UpdateProductDto): Promise<Product> {
         const product = await this.findOne(id);
         Object.assign(product, updateProductDto);
+        return await this.productRepository.save(product);
+    }
+
+    async updateStock(id: string, stock: number): Promise<Product> {
+        const product = await this.findOne(id);
+        product.stock = stock;
         return await this.productRepository.save(product);
     }
 

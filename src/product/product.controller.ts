@@ -11,6 +11,11 @@ export class ProductController {
         return this.productService.create(createProductDto);
     }
 
+    @Post('bulk')
+    createBulk(@Body() createProductDtos: CreateProductDto[]) {
+        return this.productService.createBulk(createProductDtos);
+    }
+
     @Get()
     findAll() {
         return this.productService.findAll();
@@ -24,6 +29,11 @@ export class ProductController {
     @Put(':id')
     update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
         return this.productService.update(id, updateProductDto);
+    }
+
+    @Put(':id/stock')
+    updateStock(@Param('id') id: string, @Body('stock') stock: number) {
+        return this.productService.updateStock(id, stock);
     }
 
     @Delete(':id')

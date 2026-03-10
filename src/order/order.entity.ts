@@ -14,7 +14,10 @@ import { OrderItem } from './order-item.entity.js';
 export enum OrderStatus {
     PENDING = 'PENDING',
     PLACED = 'PLACED',
-    SHIPPED = 'SHIPPED',
+    PROCESSING = 'PROCESSING',
+    HANDED_OVER = 'HANDED_OVER',
+    IN_TRANSIT = 'IN_TRANSIT',
+    OUT_FOR_DELIVERY = 'OUT_FOR_DELIVERY',
     DELIVERED = 'DELIVERED',
     CANCELLED = 'CANCELLED',
 }
@@ -58,6 +61,27 @@ export class Order {
         default: OrderStatus.PENDING,
     })
     status: OrderStatus;
+
+    @Column({ type: 'varchar', length: 100, nullable: true })
+    trackingNumber: string;
+
+    @Column({ type: 'varchar', length: 100, nullable: true })
+    courierName: string;
+
+    @Column({ type: 'timestamp', nullable: true })
+    shippedAt: Date;
+
+    @Column({ type: 'timestamp', nullable: true })
+    deliveredAt: Date;
+
+    @Column({ type: 'text', nullable: true })
+    proofOfDelivery: string;
+
+    @Column({ type: 'varchar', length: 50, nullable: true })
+    assignedLogisticsId: string;
+
+    @Column({ type: 'varchar', length: 50, nullable: true })
+    assignedDeliveryPartnerId: string;
 
     @CreateDateColumn({ type: 'timestamp' })
     created_at: Date;

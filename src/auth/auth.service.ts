@@ -46,6 +46,7 @@ export class AuthService {
             email: signupDto.email,
             phone: signupDto.phone,
             password: signupDto.password,
+            role: signupDto.role,
         });
 
         const payload = { email: user.email, sub: user.id };
