@@ -44,4 +44,7 @@ export class OrderItem {
 
     @RelationId((orderItem: OrderItem) => orderItem.product)
     productId: string;
+
+    @Column({ type: 'uuid' })
+    categoryId: string; // snapshots categoryId at time of order
 }

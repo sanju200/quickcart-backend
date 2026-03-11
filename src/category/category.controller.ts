@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, ParseUUIDPipe } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto, UpdateCategoryDto } from '../dto/category.dto';
 
@@ -11,23 +11,28 @@ export class CategoryController {
         return this.categoryService.create(createCategoryDto);
     }
 
+    @Post('bulk')
+    createBulk(@Body() createCategoryDtos: CreateCategoryDto[]) {
+        return this.categoryService.createBulk(createCategoryDtos);
+    }
+
     @Get()
     findAll() {
         return this.categoryService.findAll();
     }
 
     @Get(':id')
-    findOne(@Param('id') id: string) {
+    findOne(@Param('id', ParseUUIDPipe) id: string) {
         return this.categoryService.findOne(id);
     }
 
     @Put(':id')
-    update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
+    update(@Param('id', ParseUUIDPipe) id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
         return this.categoryService.update(id, updateCategoryDto);
     }
 
     @Delete(':id')
-    remove(@Param('id') id: string) {
+    remove(@Param('id', ParseUUIDPipe) id: string) {
         return this.categoryService.remove(id);
     }
 }

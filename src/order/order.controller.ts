@@ -49,9 +49,9 @@ export class OrderController {
     @Put(':id/handover')
     handover(
         @Param('id') id: string,
-        @Body() data: { trackingNumber: string; courierName: string }
+        @Body() data: { trackingNumber: string; courierName: string; assignedLogisticsId?: string }
     ) {
-        return this.orderService.handoverToLogistics(id, data.trackingNumber, data.courierName);
+        return this.orderService.handoverToLogistics(id, data.trackingNumber, data.courierName, data.assignedLogisticsId);
     }
 
     @Put(':id/transit')

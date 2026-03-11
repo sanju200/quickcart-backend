@@ -62,6 +62,7 @@ export class OrderService {
             orderItem.price = itemDto.price;
             orderItem.totalAmount = itemDto.quantity * itemDto.price;
             orderItem.productId = itemDto.productId;
+            orderItem.categoryId = product.categoryId;
             orderItems.push(orderItem);
         }
 
@@ -123,13 +124,16 @@ export class OrderService {
         return this.orderRepository.save(order);
     }
 
-    async handoverToLogistics(id: string, trackingNumber: string, courierName: string): Promise<Order> {
+    async handoverToLogistics(id: string, trackingNumber: string, courierName: string, assignedLogisticsId?: string): Promise<Order> {
         const order = await this.findOne(id);
         this.validateStatusTransition(order.status, OrderStatus.HANDED_OVER);
 
         order.status = OrderStatus.HANDED_OVER;
         order.trackingNumber = trackingNumber;
         order.courierName = courierName;
+        if (assignedLogisticsId) {
+            order.assignedLogisticsId = assignedLogisticsId;
+        }
         order.shippedAt = new Date();
 
         return this.orderRepository.save(order);
