@@ -1,6 +1,7 @@
 import {
     Entity,
     PrimaryColumn,
+    PrimaryGeneratedColumn,
     Column,
     CreateDateColumn,
     UpdateDateColumn,
@@ -9,7 +10,7 @@ import {
 
 @Entity('categories')
 export class Category {
-    @PrimaryColumn({ type: 'varchar', length: 50 })
+    @PrimaryGeneratedColumn('uuid')
     id: string;
 
     @Column({ type: 'varchar', length: 100 })

@@ -16,6 +16,11 @@ export class CategoryService {
         return await this.categoryRepository.save(category);
     }
 
+    async createBulk(createCategoryDtos: CreateCategoryDto[]): Promise<Category[]> {
+        const categories = this.categoryRepository.create(createCategoryDtos);
+        return await this.categoryRepository.save(categories);
+    }
+
     async findAll(): Promise<Category[]> {
         return await this.categoryRepository.find();
     }
