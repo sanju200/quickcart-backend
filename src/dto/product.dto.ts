@@ -7,8 +7,8 @@ export class CreateProductDto {
     @IsString()
     name: string;
 
-    @IsString()
-    price: string;
+    @IsNumber()
+    price: number;
 
     @IsString()
     weight: string;
@@ -31,8 +31,8 @@ export class UpdateProductDto {
     name?: string;
 
     @IsOptional()
-    @IsString()
-    price?: string;
+    @IsNumber()
+    price?: number;
 
     @IsOptional()
     @IsString()
