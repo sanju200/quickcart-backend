@@ -5,28 +5,29 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     BeforeInsert,
+    PrimaryGeneratedColumn,
+    ManyToOne,
+    JoinColumn,
 } from 'typeorm';
+import { Category } from '../category/category.entity';
 
 @Entity('products')
 export class Product {
-    @PrimaryColumn({ type: 'varchar', length: 50 })
+    @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @BeforeInsert()
-    generateId() {
-        if (!this.id) {
-            this.id = 'p_' + Math.random().toString(36).substr(2, 9);
-        }
-    }
+    @Column({ type: 'uuid', nullable: true })
+    categoryId: string;
 
-    @Column({ type: 'varchar', length: 100 })
-    category: string;
+    @ManyToOne(() => Category)
+    @JoinColumn({ name: 'categoryId' })
+    category: Category;
 
     @Column({ type: 'varchar', length: 255 })
     name: string;
 
-    @Column({ type: 'varchar', length: 50 })
-    price: string;
+    @Column({ type: 'float', default: 0 })
+    price: number;
 
     @Column({ type: 'varchar', length: 50 })
     weight: string;

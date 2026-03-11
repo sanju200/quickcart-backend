@@ -56,7 +56,7 @@ export class CartService {
                 cart,
                 product,
                 quantity,
-                price: parseFloat(product.price),
+                price: product.price,
                 subTotal: 0,
             });
             cart.items.push(cartItem);
