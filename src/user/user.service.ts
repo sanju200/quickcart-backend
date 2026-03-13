@@ -2,7 +2,7 @@ import { Injectable, OnModuleInit, NotFoundException, BadRequestException } from
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { User } from './user.entity';
+import { User, UserRole } from './user.entity';
 import { CreateUserDto, UpdateUserDto } from '../dto/user.dto';
 
 @Injectable()
@@ -13,7 +13,7 @@ export class UserService implements OnModuleInit {
     ) { }
 
     async onModuleInit() {
-        const defaultEmail = 'sanjivani.bhongade@kizora.com';
+        const defaultEmail = 'sanjivanibhongade2001@gmail.com';
         const existingUser = await this.userRepository.findOne({ where: { email: defaultEmail } });
 
         if (!existingUser) {
@@ -22,12 +22,17 @@ export class UserService implements OnModuleInit {
             const defaultUser = this.userRepository.create({
                 name: 'Sanjivani Bhongade',
                 email: defaultEmail,
-                phone: '1234567890', // placeholder phone
+                phone: '1234567890',
                 password_hash: hashedPassword,
                 is_verified: true,
+                role: UserRole.ADMIN,
             });
             await this.userRepository.save(defaultUser);
             console.log('Default user created.');
+        } else if (existingUser.role !== UserRole.ADMIN) {
+            console.log('Updating existing default user to ADMIN role...');
+            existingUser.role = UserRole.ADMIN;
+            await this.userRepository.save(existingUser);
         }
     }
 
@@ -56,10 +61,12 @@ export class UserService implements OnModuleInit {
             throw new BadRequestException('Email already in use');
         }
 
-        // Check if phone already exists
-        const existingPhone = await this.userRepository.findOne({ where: { phone: userData.phone } });
-        if (existingPhone) {
-            throw new BadRequestException('Phone number already in use');
+        // Check if phone already exists if provided
+        if (userData.phone) {
+            const existingPhone = await this.userRepository.findOne({ where: { phone: userData.phone } });
+            if (existingPhone) {
+                throw new BadRequestException('Phone number already in use');
+            }
         }
 
         let password_hash: string | null = null;

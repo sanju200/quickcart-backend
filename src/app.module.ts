@@ -9,15 +9,18 @@ import { User } from './user/user.entity';
 import { Product } from './product/product.entity';
 import { ProductModule } from './product/product.module';
 import { APP_GUARD } from '@nestjs/core';
-import { JwtAuthGuard } from './auth/jwt-auth.guard.js';
-import { CategoryModule } from './category/category.module.js';
-import { Category } from './category/category.entity.js';
-import { OrderModule } from './order/order.module.js';
-import { Order } from './order/order.entity.js';
-import { OrderItem } from './order/order-item.entity.js';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { CategoryModule } from './category/category.module';
+import { Category } from './category/category.entity';
+import { OrderModule } from './order/order.module';
+import { Order } from './order/order.entity';
+import { OrderItem } from './order/order-item.entity';
 import { CartModule } from './cart/cart.module';
 import { Cart } from './cart/cart.entity';
 import { CartItem } from './cart/cart-item.entity';
+import { AdminModule } from './admin/admin.module';
+import { OfferModule } from './offer/offer.module';
+import { Offer } from './offer/offer.entity';
 
 @Module({
   imports: [
@@ -32,7 +35,7 @@ import { CartItem } from './cart/cart-item.entity';
         username: config.get('DB_USER', 'root'),
         password: config.get('DB_PASS', 'root'),
         database: config.get('DB_NAME', 'quickcart'),
-        entities: [User, Product, Category, Order, OrderItem, Cart, CartItem],
+        entities: [User, Product, Category, Order, OrderItem, Cart, CartItem, Offer],
         synchronize: true, // enabled to automatically create the products table
       }),
     }),
@@ -42,6 +45,8 @@ import { CartItem } from './cart/cart-item.entity';
     CategoryModule,
     OrderModule,
     CartModule,
+    AdminModule,
+    OfferModule,
   ],
   controllers: [AppController],
   providers: [

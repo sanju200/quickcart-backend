@@ -11,7 +11,7 @@ async function findUser() {
 
     try {
         await client.connect();
-        const res = await client.query("SELECT id FROM users WHERE email = 'sanjivani.bhongade@kizora.com'");
+        const res = await client.query("SELECT id FROM users WHERE email = 'sanjivanibhongade2001@gmail.com'");
         console.log(JSON.stringify(res.rows[0]));
     } catch (err) {
         console.error(err);
