@@ -34,7 +34,7 @@ export class Order {
         }
     }
 
-    @ManyToOne(() => User)
+    @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
     user: User;
 
     @Column({ type: 'varchar', length: 150 })
