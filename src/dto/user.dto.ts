@@ -32,8 +32,9 @@ export class CreateUserDto {
     @IsEmail()
     email: string;
 
+    @IsOptional()
     @IsString()
-    phone: string;
+    phone?: string;
 
     @IsOptional()
     @IsString()

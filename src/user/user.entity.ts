@@ -37,8 +37,8 @@ export class User {
     @Column({ type: 'varchar', length: 150, unique: true })
     email: string;
 
-    @Column({ type: 'varchar', length: 15, unique: true, nullable: false })
-    phone: string;
+    @Column({ type: 'varchar', length: 15, unique: true, nullable: true })
+    phone?: string | null;
 
     @Exclude()
     @Column({ type: 'text', nullable: true })

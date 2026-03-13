@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, ParseUUIDPipe, UseGuards, Request, UseInterceptors, ClassSerializerInterceptor } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, ParseUUIDPipe, UseGuards, Request, UseInterceptors, ClassSerializerInterceptor, BadRequestException } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto, UpdateUserDto } from '../dto/user.dto';
 import { User } from './user.entity';
@@ -49,8 +49,13 @@ export class UserController {
         return this.userService.update(id, updateUserDto);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Delete(':id')
-    remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-        return this.userService.remove(id);
+    async remove(@Request() req, @Param('id', ParseUUIDPipe) id: string): Promise<{ message: string }> {
+        if (req.user.userId === id) {
+            throw new BadRequestException('You cannot delete your own account.');
+        }
+        await this.userService.remove(id);
+        return { message: 'User deleted successfully' };
     }
 }
