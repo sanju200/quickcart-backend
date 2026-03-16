@@ -16,11 +16,11 @@ export class Product {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ type: 'uuid', nullable: true })
+    @Column({ type: 'uuid', nullable: true, name: 'category' })
     categoryId: string;
 
     @ManyToOne(() => Category)
-    @JoinColumn({ name: 'categoryId' })
+    @JoinColumn({ name: 'category' })
     category: Category;
 
     @Column({ type: 'varchar', length: 255 })
@@ -37,6 +37,9 @@ export class Product {
 
     @Column({ type: 'int', default: 0 })
     stock: number;
+
+    @Column({ type: 'int', default: 5 })
+    lowStockThreshold: number;
 
     @CreateDateColumn({ type: 'timestamp' })
     created_at: Date;

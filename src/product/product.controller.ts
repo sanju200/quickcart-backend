@@ -53,6 +53,11 @@ export class ProductController {
         return this.productService.updateStock(id, stock);
     }
 
+    @Put(':id/threshold')
+    updateThreshold(@Param('id', ParseUUIDPipe) id: string, @Body('lowStockThreshold') threshold: number) {
+        return this.productService.updateThreshold(id, threshold);
+    }
+
     @Delete(':id')
     remove(@Param('id', ParseUUIDPipe) id: string) {
         return this.productService.remove(id);

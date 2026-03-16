@@ -19,6 +19,10 @@ export class CreateProductDto {
     @IsOptional()
     @IsNumber()
     stock?: number;
+
+    @IsOptional()
+    @IsNumber()
+    lowStockThreshold?: number;
 }
 
 export class UpdateProductDto {
@@ -45,4 +49,9 @@ export class UpdateProductDto {
     @IsOptional()
     @IsNumber()
     stock?: number;
+
+    @IsOptional()
+    @IsNumber()
+    lowStockThreshold?: number;
 }
+

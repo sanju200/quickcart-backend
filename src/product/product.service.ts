@@ -105,6 +105,12 @@ export class ProductService {
         return await this.productRepository.save(product);
     }
 
+    async updateThreshold(id: string, threshold: number): Promise<Product> {
+        const product = await this.findOne(id);
+        product.lowStockThreshold = threshold;
+        return await this.productRepository.save(product);
+    }
+
     async remove(id: string): Promise<void> {
         const product = await this.findOne(id);
         await this.productRepository.remove(product);
