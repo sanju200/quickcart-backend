@@ -16,7 +16,7 @@ export class Product {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ type: 'uuid', nullable: true })
+    @Column({ type: 'uuid', nullable: true, name: 'categoryId' })
     categoryId: string;
 
     @ManyToOne(() => Category)
@@ -37,6 +37,9 @@ export class Product {
 
     @Column({ type: 'int', default: 0 })
     stock: number;
+
+    @Column({ type: 'int', default: 5 })
+    lowStockThreshold: number;
 
     @CreateDateColumn({ type: 'timestamp' })
     created_at: Date;

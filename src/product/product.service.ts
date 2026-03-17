@@ -12,12 +12,14 @@ export class ProductService {
     ) { }
 
     async create(createProductDto: CreateProductDto): Promise<Product> {
-        const product = this.productRepository.create(createProductDto);
+        const { category, ...productData } = createProductDto;
+        const product = this.productRepository.create(productData);
         return await this.productRepository.save(product);
     }
 
     async createBulk(createProductDtos: CreateProductDto[]): Promise<Product[]> {
-        const products = this.productRepository.create(createProductDtos);
+        const productData = createProductDtos.map(({ category, ...rest }) => rest);
+        const products = this.productRepository.create(productData);
         return await this.productRepository.save(products);
     }
 
@@ -102,6 +104,12 @@ export class ProductService {
     async updateStock(id: string, stock: number): Promise<Product> {
         const product = await this.findOne(id);
         product.stock = stock;
+        return await this.productRepository.save(product);
+    }
+
+    async updateThreshold(id: string, threshold: number): Promise<Product> {
+        const product = await this.findOne(id);
+        product.lowStockThreshold = threshold;
         return await this.productRepository.save(product);
     }
 

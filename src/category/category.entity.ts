@@ -13,6 +13,9 @@ export class Category {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
+    @Column({ type: 'varchar', length: 100, nullable: true })
+    categoryId: string;
+
     @Column({ type: 'varchar', length: 100 })
     category: string;
 
