@@ -1,8 +1,13 @@
-import { IsString, IsOptional, IsNumber } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsObject } from 'class-validator';
+import { Category } from 'src/category/category.entity';
 
 export class CreateProductDto {
     @IsString()
     categoryId: string;
+
+    @IsOptional()
+    @IsObject()
+    category?: Category;
 
     @IsString()
     name: string;
@@ -29,6 +34,10 @@ export class UpdateProductDto {
     @IsOptional()
     @IsString()
     categoryId?: string;
+
+    @IsOptional()
+    @IsString()
+    category?: string;
 
     @IsOptional()
     @IsString()

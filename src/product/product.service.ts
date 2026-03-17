@@ -12,12 +12,14 @@ export class ProductService {
     ) { }
 
     async create(createProductDto: CreateProductDto): Promise<Product> {
-        const product = this.productRepository.create(createProductDto);
+        const { category, ...productData } = createProductDto;
+        const product = this.productRepository.create(productData);
         return await this.productRepository.save(product);
     }
 
     async createBulk(createProductDtos: CreateProductDto[]): Promise<Product[]> {
-        const products = this.productRepository.create(createProductDtos);
+        const productData = createProductDtos.map(({ category, ...rest }) => rest);
+        const products = this.productRepository.create(productData);
         return await this.productRepository.save(products);
     }
 

@@ -16,11 +16,11 @@ export class Product {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ type: 'uuid', nullable: true, name: 'category' })
+    @Column({ type: 'uuid', nullable: true, name: 'categoryId' })
     categoryId: string;
 
     @ManyToOne(() => Category)
-    @JoinColumn({ name: 'category' })
+    @JoinColumn({ name: 'categoryId' })
     category: Category;
 
     @Column({ type: 'varchar', length: 255 })
