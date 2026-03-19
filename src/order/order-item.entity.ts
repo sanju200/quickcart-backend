@@ -45,6 +45,9 @@ export class OrderItem {
     @RelationId((orderItem: OrderItem) => orderItem.product)
     productId: string;
 
+    @Column({ type: 'varchar', length: 50, nullable: true })
+    weight: string; // snapshots product weight at time of order
+
     @Column({ type: 'uuid' })
     categoryId: string; // snapshots categoryId at time of order
 }

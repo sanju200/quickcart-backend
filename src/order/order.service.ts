@@ -62,6 +62,7 @@ export class OrderService {
             orderItem.price = itemDto.price;
             orderItem.totalAmount = itemDto.quantity * itemDto.price;
             orderItem.productId = itemDto.productId;
+            orderItem.weight = product.weight;
             orderItem.categoryId = product.categoryId;
             orderItems.push(orderItem);
         }
@@ -73,7 +74,7 @@ export class OrderService {
 
     async findAll(): Promise<Order[]> {
         return this.orderRepository.find({
-            relations: ['items', 'user'],
+            relations: ['items', 'items.product', 'user'],
             order: { created_at: 'DESC' },
         });
     }
@@ -81,7 +82,7 @@ export class OrderService {
     async findAllFiltered(where: any): Promise<Order[]> {
         return this.orderRepository.find({
             where,
-            relations: ['items', 'user'],
+            relations: ['items', 'items.product', 'user'],
             order: { created_at: 'DESC' },
         });
     }
@@ -89,7 +90,7 @@ export class OrderService {
     async findByUserId(userId: string): Promise<Order[]> {
         return this.orderRepository.find({
             where: { user: { id: userId } },
-            relations: ['items'],
+            relations: ['items', 'items.product'],
             order: { created_at: 'DESC' },
         });
     }
@@ -97,7 +98,7 @@ export class OrderService {
     async findOne(id: string): Promise<Order> {
         const order = await this.orderRepository.findOne({
             where: { id },
-            relations: ['items', 'user'],
+            relations: ['items', 'items.product', 'user'],
         });
         if (!order) {
             throw new NotFoundException(`Order with ID ${id} not found`);
