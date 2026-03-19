@@ -101,17 +101,14 @@ export class CartService {
 
     async clearCart(userId: string): Promise<Cart> {
         const cart = await this.getCart(userId);
-        console.log(`Clearing cart for user ${userId}. Items count: ${cart.items?.length || 0}`);
 
         if (cart.items && cart.items.length > 0) {
             await this.cartItemRepository.remove(cart.items);
-            console.log(`Removed ${cart.items.length} items from cart ${cart.id}`);
         }
 
         cart.items = [];
         cart.totalPrice = 0;
         const savedCart = await this.cartRepository.save(cart);
-        console.log(`Cart ${cart.id} saved with 0 items.`);
         return savedCart;
     }
 
