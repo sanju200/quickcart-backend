@@ -20,7 +20,8 @@ export class UserService implements OnModuleInit {
             console.log('Seeding default user...');
             const hashedPassword = await bcrypt.hash('Kizora@123', 10);
             const defaultUser = this.userRepository.create({
-                name: 'Sanjivani Bhongade',
+                firstName: 'Sanjivani',
+                lastName: 'Bhongade',
                 email: defaultEmail,
                 phone: '1234567890',
                 password_hash: hashedPassword,
@@ -58,14 +59,14 @@ export class UserService implements OnModuleInit {
         // Check if email already exists
         const existingEmail = await this.findByEmail(userData.email);
         if (existingEmail) {
-            throw new BadRequestException('Email already in use');
+            throw new BadRequestException('This email is already registered. Please use a different email.');
         }
 
         // Check if phone already exists if provided
         if (userData.phone) {
             const existingPhone = await this.userRepository.findOne({ where: { phone: userData.phone } });
             if (existingPhone) {
-                throw new BadRequestException('Phone number already in use');
+                throw new BadRequestException('This phone number is already registered. Please use a different phone number.');
             }
         }
 
@@ -101,14 +102,14 @@ export class UserService implements OnModuleInit {
         if (userData.email && userData.email !== user.email) {
             const emailExists = await this.findByEmail(userData.email);
             if (emailExists) {
-                throw new BadRequestException('Email already in use');
+                throw new BadRequestException('This email is already registered. Please use a different email.');
             }
         }
 
         if (userData.phone && userData.phone !== user.phone) {
             const phoneExists = await this.userRepository.findOne({ where: { phone: userData.phone } });
             if (phoneExists) {
-                throw new BadRequestException('Phone number already in use');
+                throw new BadRequestException('This phone number is already registered. Please use a different phone number.');
             }
         }
 

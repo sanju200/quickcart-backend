@@ -12,7 +12,10 @@ export class LoginDto {
 
 export class SignupDto {
     @IsString()
-    name: string;
+    firstName: string;
+
+    @IsString()
+    lastName: string;
 
     @IsEmail()
     email: string;

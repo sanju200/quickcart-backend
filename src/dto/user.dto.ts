@@ -27,7 +27,10 @@ export class AddressDto {
 
 export class CreateUserDto {
     @IsString()
-    name: string;
+    firstName: string;
+
+    @IsString()
+    lastName: string;
 
     @IsEmail()
     email: string;
@@ -58,7 +61,11 @@ export class CreateUserDto {
 export class UpdateUserDto {
     @IsOptional()
     @IsString()
-    name?: string;
+    firstName?: string;
+
+    @IsOptional()
+    @IsString()
+    lastName?: string;
 
     @IsOptional()
     @IsEmail()
