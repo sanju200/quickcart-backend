@@ -8,6 +8,7 @@ async function bootstrap() {
   console.log('DB_USER:', process.env.DB_USER);
   console.log('--- End Env Log ---');
   const app = await NestFactory.create(AppModule);
+  app.enableCors();
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     forbidNonWhitelisted: true,
