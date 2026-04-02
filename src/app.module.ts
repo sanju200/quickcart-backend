@@ -33,11 +33,11 @@ import { Offer } from './offer/offer.entity';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
-        host: config.get('DB_HOST', '127.0.0.1'),
-        port: parseInt(config.get('DB_PORT', '5432'), 10),
-        username: config.get('DB_USER', 'postgres'),
-        password: config.get('DB_PASS', 'Kizora@123'),
-        database: config.get('DB_NAME', 'quickcart'),
+        host: config.get('DB_HOST', 'pg-7b06847-quickcart.a.aivencloud.com'),
+        port: parseInt(config.get('DB_PORT', '21331'), 10),
+        username: config.get('DB_USER', 'avnadmin'),
+        password: config.get('DB_PASS', 'AVNS_p_dn-nAYz5XR6unqhnl'),
+        database: config.get('DB_NAME', 'defaultdb'),
         entities: [User, Product, Category, Order, OrderItem, Cart, CartItem, Offer],
         synchronize: true,
         ssl: {
