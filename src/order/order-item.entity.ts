@@ -5,9 +5,11 @@ import {
     ManyToOne,
     BeforeInsert,
     RelationId,
+    JoinColumn,
 } from 'typeorm';
 import { Order } from './order.entity.js';
 import { Product } from '../product/product.entity.js';
+import { Category } from '../category/category.entity.js';
 
 @Entity('order_items')
 export class OrderItem {
@@ -50,4 +52,8 @@ export class OrderItem {
 
     @Column({ type: 'uuid' })
     categoryId: string; // snapshots categoryId at time of order
+
+    @ManyToOne(() => Category)
+    @JoinColumn({ name: 'categoryId' })
+    category: Category;
 }

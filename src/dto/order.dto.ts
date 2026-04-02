@@ -1,10 +1,18 @@
-import { IsString, IsNumber, IsOptional, IsArray, ValidateNested, IsEmail, IsEnum } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsArray, ValidateNested, IsEmail, IsEnum, IsObject } from 'class-validator';
 import { Type } from 'class-transformer';
 import { OrderStatus } from '../order/order.entity';
+import { Category } from 'src/category/category.entity';
 
 export class CreateOrderItemDto {
     @IsString()
     productId: string;
+
+    @IsString()
+    categoryId: string;
+
+    @IsOptional()
+    @IsObject()
+    category?: Category;
 
     @IsString()
     productTitle: string;
