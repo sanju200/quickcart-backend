@@ -11,11 +11,17 @@ export class LoginDto {
 }
 
 export class SignupDto {
+    @IsOptional()
     @IsString()
-    firstName: string;
+    name?: string;
 
+    @IsOptional()
     @IsString()
-    lastName: string;
+    firstName?: string;
+
+    @IsOptional()
+    @IsString()
+    lastName?: string;
 
     @IsEmail()
     email: string;

@@ -75,9 +75,18 @@ export class AuthService {
                 field: 'email'
             });
         }
+        let fName = signupDto.firstName;
+        let lName = signupDto.lastName;
+
+        if (signupDto.name && (!fName || !lName)) {
+            const parts = signupDto.name.trim().split(/\s+/);
+            fName = parts[0];
+            lName = parts.slice(1).join(' ') || '';
+        }
+
         const user = await this.userService.create({
-            firstName: signupDto.firstName,
-            lastName: signupDto.lastName,
+            firstName: fName || '',
+            lastName: lName || '',
             email: signupDto.email,
             phone: signupDto.phone,
             password: signupDto.password,
