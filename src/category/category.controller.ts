@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Param, Put, Delete, ParseUUIDPipe } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto, UpdateCategoryDto } from '../dto/category.dto';
+import { Public } from '../auth/public.decorator';
 
 @Controller('categories')
 export class CategoryController {
@@ -16,11 +17,13 @@ export class CategoryController {
         return this.categoryService.createBulk(createCategoryDtos);
     }
 
+    @Public()
     @Get()
     findAll() {
         return this.categoryService.findAll();
     }
 
+    @Public()
     @Get(':id')
     findOne(@Param('id', ParseUUIDPipe) id: string) {
         return this.categoryService.findOne(id);

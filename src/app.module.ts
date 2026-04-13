@@ -31,19 +31,23 @@ import { Offer } from './offer/offer.entity';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        host: config.get('DB_HOST', 'pg-7b06847-quickcart.a.aivencloud.com'),
-        port: parseInt(config.get('DB_PORT', '21331'), 10),
-        username: config.get('DB_USER', 'avnadmin'),
-        password: config.get('DB_PASS', 'AVNS_p_dn-nAYz5XR6unqhnl'),
-        database: config.get('DB_NAME', 'defaultdb'),
-        entities: [User, Product, Category, Order, OrderItem, Cart, CartItem, Offer],
-        synchronize: true,
-        ssl: {
-          rejectUnauthorized: false,
-        },
-      }),
+      useFactory: (config: ConfigService) => {
+        const host = config.get<string>('DB_HOST');
+        const isAiven = host?.includes('aivencloud.com');
+        const ssl = config.get<string>('DB_SSL') === 'true' || isAiven;
+
+        return {
+          type: 'postgres',
+          host: host,
+          port: parseInt(config.get<string>('DB_PORT') ?? '21331', 10),
+          username: config.get<string>('DB_USER'),
+          password: config.get<string>('DB_PASS'),
+          database: config.get<string>('DB_NAME'),
+          entities: [User, Product, Category, Order, OrderItem, Cart, CartItem, Offer],
+          synchronize: true,
+          ssl: ssl ? { rejectUnauthorized: false } : false,
+        };
+      },
     }),
     UserModule,
     AuthModule,
