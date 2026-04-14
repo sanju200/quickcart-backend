@@ -61,6 +61,10 @@ export class CreateUserDto {
 export class UpdateUserDto {
     @IsOptional()
     @IsString()
+    name?: string;
+
+    @IsOptional()
+    @IsString()
     firstName?: string;
 
     @IsOptional()

@@ -41,6 +41,7 @@ export class UserController {
         return this.userService.create(createUserDto);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Put(':id')
     update(
         @Param('id', ParseUUIDPipe) id: string,

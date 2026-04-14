@@ -117,7 +117,15 @@ export class UserService implements OnModuleInit {
             user.addresses = this.normalizeAddresses(addresses);
         }
 
-        Object.assign(user, userData);
+        const dataToAssign = { ...userData };
+        if (dataToAssign.name) {
+            const parts = dataToAssign.name.trim().split(/\s+/);
+            if (!dataToAssign.firstName) user.firstName = parts[0];
+            if (!dataToAssign.lastName) user.lastName = parts.slice(1).join(' ') || '';
+            delete dataToAssign.name;
+        }
+
+        Object.assign(user, dataToAssign);
         return this.userRepository.save(user);
     }
 
