@@ -23,13 +23,35 @@ export class ProductService {
         return await this.productRepository.save(products);
     }
 
-    async findAll(): Promise<Product[]> {
-        return await this.productRepository.find({ relations: ['category'] });
+    async findAll(page: number = 1, limit: number = 20): Promise<{ data: Product[]; total: number }> {
+        const [data, total] = await this.productRepository.findAndCount({
+            select: ['id', 'name', 'price', 'image', 'stock', 'categoryId', 'created_at'],
+            relations: ['category'],
+            skip: (page - 1) * limit,
+            take: limit,
+            order: { created_at: 'DESC' },
+        });
+        return { data, total };
     }
 
-    async findAllFiltered(filters: { name?: string; categoryId?: string; tag?: string }): Promise<Product[]> {
+    async findAllFiltered(filters: { name?: string; categoryId?: string; tag?: string; page?: number; limit?: number }): Promise<{ data: Product[]; total: number }> {
+        const page = filters.page || 1;
+        const limit = filters.limit || 20;
+
         const query = this.productRepository.createQueryBuilder('product')
-            .leftJoinAndSelect('product.category', 'category');
+            .leftJoin('product.category', 'category')
+            .select([
+                'product.id',
+                'product.name',
+                'product.price',
+                'product.image',
+                'product.stock',
+                'product.categoryId',
+                'product.created_at',
+                'category.id',
+                'category.category',
+                'category.title'
+            ]);
 
         if (filters.name) {
             query.andWhere('product.name ILIKE :name', { name: `%${filters.name}%` });
@@ -70,7 +92,13 @@ export class ProductService {
             }
         }
 
-        return await query.getMany();
+        query
+            .skip((page - 1) * limit)
+            .take(limit)
+            .orderBy('product.created_at', 'DESC');
+
+        const [data, total] = await query.getManyAndCount();
+        return { data, total };
     }
 
     async findByCategoryId(categoryId: string): Promise<Product[]> {

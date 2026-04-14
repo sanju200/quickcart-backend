@@ -95,23 +95,30 @@ export class UserService implements OnModuleInit {
         const user = await this.findOne(id);
         const { password, addresses, ...userData } = updateUserDto;
 
+        // 1. Parallelize data processing and DB checks
+        const tasks: Promise<any>[] = [];
+
+        // Only hash if password actually changed (CPU intensive)
         if (password) {
-            user.password_hash = await bcrypt.hash(password, 10);
+            tasks.push(bcrypt.hash(password, 10).then(hash => user.password_hash = hash));
         }
 
+        // Only check email if it's different (Network intensive)
         if (userData.email && userData.email !== user.email) {
-            const emailExists = await this.findByEmail(userData.email);
-            if (emailExists) {
-                throw new BadRequestException('This email is already registered. Please use a different email.');
-            }
+            tasks.push(this.findByEmail(userData.email).then(emailExists => {
+                if (emailExists) throw new BadRequestException('This email is already registered.');
+            }));
         }
 
+        // Only check phone if it's different
         if (userData.phone && userData.phone !== user.phone) {
-            const phoneExists = await this.userRepository.findOne({ where: { phone: userData.phone } });
-            if (phoneExists) {
-                throw new BadRequestException('This phone number is already registered. Please use a different phone number.');
-            }
+            tasks.push(this.userRepository.findOne({ where: { phone: userData.phone } }).then(phoneExists => {
+                if (phoneExists) throw new BadRequestException('This phone number is already registered.');
+            }));
         }
+
+        // Wait for all checks to complete in parallel (one network round-trip instead of three)
+        await Promise.all(tasks);
 
         if (addresses) {
             user.addresses = this.normalizeAddresses(addresses);
@@ -120,9 +127,9 @@ export class UserService implements OnModuleInit {
         const dataToAssign = { ...userData };
         if (dataToAssign.name) {
             const parts = dataToAssign.name.trim().split(/\s+/);
-            if (!dataToAssign.firstName) user.firstName = parts[0];
-            if (!dataToAssign.lastName) user.lastName = parts.slice(1).join(' ') || '';
-            delete dataToAssign.name;
+            user.firstName = parts[0];
+            user.lastName = parts.slice(1).join(' ') || '';
+            delete (dataToAssign as any).name;
         }
 
         Object.assign(user, dataToAssign);

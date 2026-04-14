@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { LoggingInterceptor } from './logging.interceptor';
 
 async function bootstrap() {
   console.log('--- DB Config from Process Env ---');
@@ -9,6 +10,7 @@ async function bootstrap() {
   console.log('--- End Env Log ---');
   const app = await NestFactory.create(AppModule);
   app.enableCors();
+  app.useGlobalInterceptors(new LoggingInterceptor());
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     forbidNonWhitelisted: true,

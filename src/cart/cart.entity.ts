@@ -5,6 +5,7 @@ import {
     JoinColumn,
     OneToMany,
     Column,
+    Index,
 } from 'typeorm';
 import { User } from '../user/user.entity';
 import { CartItem } from './cart-item.entity.js';
@@ -14,6 +15,7 @@ export class Cart {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
+    @Index()
     @OneToOne(() => User, { onDelete: 'CASCADE' })
     @JoinColumn()
     user: User;

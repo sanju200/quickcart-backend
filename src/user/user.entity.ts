@@ -5,6 +5,7 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     AfterLoad,
+    Index,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 
@@ -37,9 +38,11 @@ export class User {
     @Column({ type: 'varchar', length: 50, nullable: true })
     lastName: string | null;
 
+    @Index()
     @Column({ type: 'varchar', length: 150, unique: true, nullable: true })
     email: string | null;
 
+    @Index()
     @Column({ type: 'varchar', length: 15, unique: true, nullable: true })
     phone?: string | null;
 
@@ -53,6 +56,7 @@ export class User {
     @Column({ type: 'boolean', default: false })
     is_verified: boolean;
 
+    @Index()
     @Column({
         type: 'enum',
         enum: UserRole,

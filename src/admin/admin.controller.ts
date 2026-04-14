@@ -1,11 +1,15 @@
 import { Controller, Get, UseGuards, Patch, Param, Body, Delete, Request, BadRequestException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { UserRole } from '../user/user.entity';
+import { UserRole, User } from '../user/user.entity';
 import { UserService } from '../user/user.service';
 import { OrderService } from '../order/order.service';
 import { ProductService } from '../product/product.service';
+import { Order } from '../order/order.entity';
+import { Product } from '../product/product.entity';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -15,25 +19,32 @@ export class AdminController {
         private userService: UserService,
         private orderService: OrderService,
         private productService: ProductService,
+        @InjectRepository(User)
+        private userRepository: Repository<User>,
+        @InjectRepository(Order)
+        private orderRepository: Repository<Order>,
+        @InjectRepository(Product)
+        private productRepository: Repository<Product>,
     ) { }
 
     @Get('stats')
     async getStats() {
-        const users = await this.userService.findAll();
-        const orders = await this.orderService.findAll();
-        const products = await this.productService.findAll();
+        // Consolidate 5 network round-trips into ONE single database call
+        const stats = await this.orderRepository.query(`
+            SELECT 
+                (SELECT COUNT(*)::int FROM users) as "totalUsers",
+                (SELECT COALESCE(SUM("totalAmount"), 0)::float FROM orders WHERE status = 'DELIVERED') as "totalRevenue",
+                (SELECT COUNT(*)::int FROM orders WHERE status IN ('PLACED', 'PROCESSING', 'HANDED_OVER', 'IN_TRANSIT', 'OUT_FOR_DELIVERY')) as "activeOrders",
+                (SELECT COUNT(*)::int FROM orders WHERE status = 'PENDING') as "pendingOrders",
+                (SELECT COUNT(*)::int FROM products WHERE stock < "lowStockThreshold") as "lowStockItems"
+        `);
 
-        const totalRevenue = orders
-            .filter(o => o.status === 'DELIVERED')
-            .reduce((sum, o) => sum + Number(o.totalAmount), 0);
-
-        const pendingOrders = orders.filter(o => o.status === 'PENDING').length;
-        const lowStockItems = products.filter(p => p.stock < 10).length;
+        const { totalRevenue, activeOrders, totalUsers, pendingOrders, lowStockItems } = stats[0];
 
         return {
             totalRevenue,
-            activeOrders: orders.filter(o => o.status !== 'DELIVERED' && o.status !== 'CANCELLED').length,
-            totalUsers: users.length,
+            activeOrders,
+            totalUsers,
             pendingOrders,
             lowStockItems,
         };
@@ -46,33 +57,43 @@ export class AdminController {
 
     @Get('low-stock')
     async getLowStockItems() {
-        const products = await this.productService.findAll();
-        return products.filter(p => p.stock < 10);
+        // Use a query instead of loading all products and filtering in JS
+        return this.productRepository
+            .createQueryBuilder('product')
+            .leftJoinAndSelect('product.category', 'category')
+            .where('product.stock < product.lowStockThreshold')
+            .getMany();
     }
 
     @Get('partners')
     async getPartners() {
-        const users = await this.userService.findAll();
-        return users.filter(u =>
-            u.role === UserRole.DELIVERY_PARTNER ||
-            u.role === UserRole.LOGISTICS_PARTNER
-        );
+        // Query only partners directly instead of loading all users
+        return this.userRepository.find({
+            where: [
+                { role: UserRole.DELIVERY_PARTNER },
+                { role: UserRole.LOGISTICS_PARTNER },
+            ],
+        });
     }
 
     @Get('commission-stats')
     async getCommissionStats() {
-        const orders = await this.orderService.findAll();
-        const delivered = orders.filter(o => o.status === 'DELIVERED');
+        // Use aggregate query instead of loading all orders
+        const result = await this.orderRepository
+            .createQueryBuilder('order')
+            .select('COALESCE(SUM(order.totalAmount), 0)', 'totalRevenue')
+            .addSelect('COUNT(order.id)', 'orderCount')
+            .where('order.status = :status', { status: 'DELIVERED' })
+            .getRawOne();
 
-        // Demo calculation
-        const platformCommission = delivered.reduce((sum, o) => sum + (Number(o.totalAmount) * 0.05), 0);
-        const deliveryCommission = delivered.reduce((sum, o) => sum + (Number(o.totalAmount) * 0.10), 0);
+        const totalRevenue = Number(result.totalRevenue);
+        const orderCount = Number(result.orderCount);
 
         return {
-            totalCommission: platformCommission + deliveryCommission,
-            platformRevenue: platformCommission,
-            partnerEarnings: deliveryCommission,
-            orderCount: delivered.length,
+            totalCommission: totalRevenue * 0.15,
+            platformRevenue: totalRevenue * 0.05,
+            partnerEarnings: totalRevenue * 0.10,
+            orderCount,
         };
     }
 

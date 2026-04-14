@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
@@ -28,6 +29,11 @@ import { Offer } from './offer/offer.entity';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 60 * 1000, // 60 seconds
+      max: 100, // maximum number of items in cache
+    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -46,6 +52,15 @@ import { Offer } from './offer/offer.entity';
           entities: [User, Product, Category, Order, OrderItem, Cart, CartItem, Offer],
           synchronize: true,
           ssl: ssl ? { rejectUnauthorized: false } : false,
+          // Connection pool settings for faster query execution
+          extra: {
+            max: 20,
+            connectionTimeoutMillis: 5000,
+            idleTimeoutMillis: 10000
+          },
+          // Log slow queries (> 1 second) for debugging
+          maxQueryExecutionTime: 1000,
+          logging: ['error', 'warn'],
         };
       },
     }),

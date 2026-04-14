@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, ParseUUIDPipe, UseInterceptors } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto, UpdateCategoryDto } from '../dto/category.dto';
 import { Public } from '../auth/public.decorator';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @Controller('categories')
 export class CategoryController {
@@ -17,6 +18,7 @@ export class CategoryController {
         return this.categoryService.createBulk(createCategoryDtos);
     }
 
+    @UseInterceptors(CacheInterceptor)
     @Public()
     @Get()
     findAll() {

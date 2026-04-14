@@ -3,11 +3,13 @@ import {
     PrimaryGeneratedColumn,
     ManyToOne,
     Column,
+    Index,
 } from 'typeorm';
 import { Cart } from './cart.entity';
 import { Product } from '../product/product.entity';
 
 @Entity('cart_items')
+@Index(['cart', 'product'], { unique: true })
 export class CartItem {
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -15,6 +17,7 @@ export class CartItem {
     @ManyToOne(() => Cart, (cart) => cart.items, { onDelete: 'CASCADE' })
     cart: Cart;
 
+    @Index()
     @ManyToOne(() => Product)
     product: Product;
 

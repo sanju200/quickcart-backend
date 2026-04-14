@@ -16,14 +16,14 @@ export class OrderController {
     findAll(
         @Query('status') status?: OrderStatus,
         @Query('assignedDeliveryPartnerId') deliveryPartnerId?: string,
+        @Query('page') page: string = '1',
+        @Query('limit') limit: string = '20'
     ) {
         const where: any = {};
         if (status) where.status = status;
         if (deliveryPartnerId) where.assignedDeliveryPartnerId = deliveryPartnerId;
 
-        // Note: Using find instead of Service method directly if simple, 
-        // but let's assume we want to extend the service method instead
-        return this.orderService.findAllFiltered(where);
+        return this.orderService.findAllFiltered(where, parseInt(page, 10), parseInt(limit, 10));
     }
 
     @Get(':id')
@@ -32,8 +32,12 @@ export class OrderController {
     }
 
     @Get('user/:userId')
-    findByUserId(@Param('userId') userId: string) {
-        return this.orderService.findByUserId(userId);
+    findByUserId(
+        @Param('userId') userId: string,
+        @Query('page') page: string = '1',
+        @Query('limit') limit: string = '10'
+    ) {
+        return this.orderService.findByUserId(userId, parseInt(page, 10), parseInt(limit, 10));
     }
 
     @Put(':id')

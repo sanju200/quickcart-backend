@@ -7,6 +7,7 @@ import {
     ManyToOne,
     OneToMany,
     BeforeInsert,
+    Index,
 } from 'typeorm';
 import { User } from '../user/user.entity.js';
 import { OrderItem } from './order-item.entity.js';
@@ -34,6 +35,7 @@ export class Order {
         }
     }
 
+    @Index()
     @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
     user: User;
 
@@ -55,6 +57,7 @@ export class Order {
     @Column({ type: 'decimal', precision: 10, scale: 2 })
     totalAmount: number;
 
+    @Index()
     @Column({
         type: 'enum',
         enum: OrderStatus,
@@ -83,6 +86,7 @@ export class Order {
     @Column({ type: 'varchar', length: 50, nullable: true })
     assignedDeliveryPartnerId: string;
 
+    @Index()
     @CreateDateColumn({ type: 'timestamp' })
     created_at: Date;
 

@@ -20,14 +20,17 @@ export class CartService {
         private productRepository: Repository<Product>,
     ) { }
 
-    async getCart(userId: string): Promise<Cart> {
+    /**
+     * Internal helper to get or create a cart without loading all relations.
+     */
+    private async getOrCreateCart(userId: string): Promise<Cart> {
         let cart = await this.cartRepository.findOne({
             where: { user: { id: userId } },
-            relations: ['items', 'items.product'],
+            select: ['id', 'totalPrice'],
         });
 
         if (!cart) {
-            const user = await this.userRepository.findOne({ where: { id: userId } });
+            const user = await this.userRepository.findOne({ where: { id: userId }, select: ['id'] });
             if (!user) {
                 throw new NotFoundException(`User with ID ${userId} not found`);
             }
@@ -38,16 +41,39 @@ export class CartService {
         return cart;
     }
 
-    async addItem(userId: string, addToCartDto: AddToCartDto): Promise<Cart> {
-        const { productId, quantity } = addToCartDto;
-        const cart = await this.getCart(userId);
-        const product = await this.productRepository.findOne({ where: { id: productId } });
+    async getCart(userId: string): Promise<Cart> {
+        const cart = await this.cartRepository.findOne({
+            where: { user: { id: userId } },
+            relations: ['items', 'items.product'],
+        });
 
-        if (!product) {
-            throw new NotFoundException(`Product with ID ${productId} not found`);
+        if (!cart) {
+            return this.getOrCreateCart(userId);
         }
 
-        let cartItem = cart.items.find((item) => item.product.id === productId);
+        return cart;
+    }
+
+    async addItem(userId: string, addToCartDto: AddToCartDto): Promise<any> {
+        const { productId, quantity } = addToCartDto;
+
+        // 1. Fetch Cart and Product (Leaner Selects)
+        const [cart, product] = await Promise.all([
+            this.getOrCreateCart(userId),
+            this.productRepository.findOne({
+                where: { id: productId },
+                select: ['id', 'price']
+            })
+        ]);
+
+        if (!product) {
+            throw new NotFoundException(`Product not found`);
+        }
+
+        // 2. Find or Create the specific item (Using composite index)
+        let cartItem = await this.cartItemRepository.findOne({
+            where: { cart: { id: cart.id }, product: { id: productId } }
+        });
 
         if (cartItem) {
             cartItem.quantity += quantity;
@@ -56,70 +82,147 @@ export class CartService {
                 cart,
                 product,
                 quantity,
-                price: product.price,
+                price: Number(product.price),
                 subTotal: 0,
             });
-            cart.items.push(cartItem);
         }
 
-        cartItem.subTotal = cartItem.quantity * cartItem.price;
+        cartItem.subTotal = cartItem.quantity * Number(cartItem.price);
         await this.cartItemRepository.save(cartItem);
 
-        return this.calculateAndUpdateTotal(cart.id);
+        // 3. Recalculate Total and Save
+        await this.recalculateCartTotal(cart.id);
+
+        // Fetch final values for the response
+        const [updatedCart, cartCount] = await Promise.all([
+            this.cartRepository.findOne({ where: { id: cart.id }, select: ['totalPrice'] }),
+            this.cartItemRepository.count({ where: { cart: { id: cart.id } } })
+        ]);
+
+        return {
+            message: 'Item added successfully',
+            totalPrice: updatedCart?.totalPrice,
+            cartCount: cartCount
+        };
     }
 
-    async updateItemQuantity(userId: string, productId: string, updateDto: UpdateCartItemDto): Promise<Cart> {
-        const cart = await this.getCart(userId);
-        const cartItem = cart.items.find((item) => item.product.id === productId);
+    private async recalculateCartTotal(cartId: string): Promise<void> {
+        const result = await this.cartItemRepository
+            .createQueryBuilder('item')
+            .select('SUM(item.subTotal)', 'total')
+            .where('item.cartId = :cartId', { cartId })
+            .getRawOne();
 
-        if (!cartItem) {
-            throw new NotFoundException(`Item with product ID ${productId} not found in cart`);
+        const totalPrice = Number(result.total) || 0;
+        await this.cartRepository.update(cartId, { totalPrice });
+    }
+
+    async updateItemQuantity(userId: string, productId: string, updateDto: UpdateCartItemDto): Promise<any> {
+        const { quantity } = updateDto;
+
+        // 1. Fetch Cart and Product (Leaner Selects)
+        const [cart, product] = await Promise.all([
+            this.getOrCreateCart(userId),
+            this.productRepository.findOne({
+                where: { id: productId },
+                select: ['id', 'price']
+            })
+        ]);
+
+        if (!product) {
+            throw new NotFoundException(`Product not found`);
         }
 
-        if (updateDto.quantity <= 0) {
-            await this.cartItemRepository.remove(cartItem);
+        // 2. Find specific cart item
+        let cartItem = await this.cartItemRepository.findOne({
+            where: {
+                cart: { id: cart.id },
+                product: { id: productId }
+            }
+        });
+
+        if (!cartItem) {
+            // FALLBACK: If item not found, create it instead of failing
+            if (quantity <= 0) return { message: 'Item already removed', totalPrice: cart.totalPrice };
+
+            cartItem = this.cartItemRepository.create({
+                cart,
+                product,
+                quantity,
+                price: Number(product.price),
+                subTotal: quantity * Number(product.price),
+            });
         } else {
-            cartItem.quantity = updateDto.quantity;
-            cartItem.subTotal = cartItem.quantity * cartItem.price;
+            if (quantity <= 0) {
+                await this.cartItemRepository.remove(cartItem);
+            } else {
+                cartItem.quantity = quantity;
+                cartItem.subTotal = cartItem.quantity * Number(cartItem.price);
+            }
+        }
+
+        if (quantity > 0) {
             await this.cartItemRepository.save(cartItem);
         }
 
-        return this.calculateAndUpdateTotal(cart.id);
+        // 3. Recalculate Total
+        await this.recalculateCartTotal(cart.id);
+
+        const [updatedCart, cartCount] = await Promise.all([
+            this.cartRepository.findOne({ where: { id: cart.id }, select: ['totalPrice'] }),
+            this.cartItemRepository.count({ where: { cart: { id: cart.id } } })
+        ]);
+
+        return {
+            message: 'Cart updated successfully',
+            totalPrice: updatedCart?.totalPrice,
+            cartCount: cartCount
+        };
     }
 
-    async removeItem(userId: string, productId: string): Promise<Cart> {
-        const cart = await this.getCart(userId);
-        const cartItem = cart.items.find((item) => item.product.id === productId);
+    async removeItem(userId: string, productId: string): Promise<any> {
+        const cart = await this.getOrCreateCart(userId);
+        const cartItem = await this.cartItemRepository.findOne({
+            where: { cart: { id: cart.id }, product: { id: productId } },
+            select: ['id']
+        });
 
-        if (!cartItem) {
-            throw new NotFoundException(`Item with product ID ${productId} not found in cart`);
-        }
+        if (!cartItem) return { message: 'Item already removed', totalPrice: cart.totalPrice };
 
         await this.cartItemRepository.remove(cartItem);
-        return this.calculateAndUpdateTotal(cart.id);
+
+        // Recalculate
+        await this.recalculateCartTotal(cart.id);
+
+        const [updatedCart, cartCount] = await Promise.all([
+            this.cartRepository.findOne({ where: { id: cart.id }, select: ['totalPrice'] }),
+            this.cartItemRepository.count({ where: { cart: { id: cart.id } } })
+        ]);
+
+        return {
+            message: 'Item removed successfully',
+            totalPrice: updatedCart?.totalPrice,
+            cartCount: cartCount
+        };
     }
 
     async clearCart(userId: string): Promise<Cart> {
-        const cart = await this.getCart(userId);
+        const cart = await this.getOrCreateCart(userId);
 
-        if (cart.items && cart.items.length > 0) {
-            await this.cartItemRepository.remove(cart.items);
-        }
+        // Bulk delete all items for this cart
+        await this.cartItemRepository.delete({ cart: { id: cart.id } });
 
-        cart.items = [];
+        // Reset total
         cart.totalPrice = 0;
-        const savedCart = await this.cartRepository.save(cart);
-        return savedCart;
+        cart.items = [];
+        return this.cartRepository.save(cart);
     }
 
-    private async calculateAndUpdateTotal(cartId: string): Promise<Cart> {
-        const cart = await this.cartRepository.findOne({
-            where: { id: cartId },
-            relations: ['items', 'items.product'],
-        });
-
-        if (!cart) throw new NotFoundException('Cart not found');
-
+    /**
+     * Recalculates total from the in-memory cart items and saves.
+     * No extra DB fetch needed — reuses the cart already loaded by getCart().
+     */
+    private async calculateAndSaveTotal(cart: Cart): Promise<Cart> {
         cart.totalPrice = cart.items.reduce((total, item) => {
             return total + Number(item.subTotal);
         }, 0);

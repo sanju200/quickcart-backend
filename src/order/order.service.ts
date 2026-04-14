@@ -28,6 +28,15 @@ export class OrderService {
             throw new NotFoundException(`User with ID ${userId} not found`);
         }
 
+        // Batch-load all products in a single query instead of N individual queries
+        const productIds = items.map(i => i.productId);
+        const products = await this.productRepository
+            .createQueryBuilder('product')
+            .where('product.id IN (:...ids)', { ids: productIds })
+            .getMany();
+
+        const productMap = new Map(products.map(p => [p.id, p]));
+
         const order = new Order();
         order.user = user;
         order.userName = createOrderDto.userName;
@@ -38,9 +47,10 @@ export class OrderService {
         order.status = OrderStatus.PLACED; // Default to placed on creation
 
         const orderItems: OrderItem[] = [];
+        const productsToUpdate: Product[] = [];
 
         for (const itemDto of items) {
-            const product = await this.productRepository.findOne({ where: { id: itemDto.productId } });
+            const product = productMap.get(itemDto.productId);
             if (!product) {
                 throw new NotFoundException(`Product with ID ${itemDto.productId} not found`);
             }
@@ -50,9 +60,9 @@ export class OrderService {
                 throw new BadRequestException(`Insufficient stock for product ${product.name}. Available: ${product.stock}`);
             }
 
-            // Deduct stock
+            // Deduct stock (will batch-save below)
             product.stock -= itemDto.quantity;
-            await this.productRepository.save(product);
+            productsToUpdate.push(product);
 
             const orderItem = new OrderItem();
             orderItem.product = product;
@@ -67,32 +77,58 @@ export class OrderService {
             orderItems.push(orderItem);
         }
 
+        // Batch-save all stock updates in one operation
+        await this.productRepository.save(productsToUpdate);
+
         order.items = orderItems;
 
         return this.orderRepository.save(order);
     }
 
-    async findAll(): Promise<Order[]> {
-        return this.orderRepository.find({
-            relations: ['items', 'items.product', 'items.category', 'user'],
+    async findAll(page: number = 1, limit: number = 20): Promise<{ data: Order[]; total: number }> {
+        const [data, total] = await this.orderRepository.findAndCount({
+            select: {
+                id: true,
+                userName: true,
+                userEmail: true,
+                totalAmount: true,
+                status: true,
+                created_at: true,
+            },
+            relations: ['items', 'user'],
+            skip: (page - 1) * limit,
+            take: limit,
             order: { created_at: 'DESC' },
         });
+        return { data, total };
     }
 
-    async findAllFiltered(where: any): Promise<Order[]> {
-        return this.orderRepository.find({
+    async findAllFiltered(where: any, page: number = 1, limit: number = 20): Promise<{ data: Order[]; total: number }> {
+        const [data, total] = await this.orderRepository.findAndCount({
             where,
             relations: ['items', 'items.product', 'items.category', 'user'],
+            skip: (page - 1) * limit,
+            take: limit,
             order: { created_at: 'DESC' },
         });
+        return { data, total };
     }
 
-    async findByUserId(userId: string): Promise<Order[]> {
-        return this.orderRepository.find({
+    async findByUserId(userId: string, page: number = 1, limit: number = 10): Promise<{ data: Order[]; total: number }> {
+        const [data, total] = await this.orderRepository.findAndCount({
             where: { user: { id: userId } },
-            relations: ['items', 'items.product', 'items.category'],
+            select: {
+                id: true,
+                totalAmount: true,
+                status: true,
+                created_at: true,
+            },
+            relations: ['items'],
+            skip: (page - 1) * limit,
+            take: limit,
             order: { created_at: 'DESC' },
         });
+        return { data, total };
     }
 
     async findOne(id: string): Promise<Order> {

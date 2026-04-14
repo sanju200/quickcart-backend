@@ -6,6 +6,7 @@ import {
     BeforeInsert,
     RelationId,
     JoinColumn,
+    Index,
 } from 'typeorm';
 import { Order } from './order.entity.js';
 import { Product } from '../product/product.entity.js';
@@ -26,6 +27,7 @@ export class OrderItem {
     @ManyToOne(() => Order, (order) => order.items, { onDelete: 'CASCADE' })
     order: Order;
 
+    @Index()
     @ManyToOne(() => Product)
     product: Product;
 
@@ -53,6 +55,7 @@ export class OrderItem {
     @Column({ type: 'uuid' })
     categoryId: string; // snapshots categoryId at time of order
 
+    @Index()
     @ManyToOne(() => Category)
     @JoinColumn({ name: 'categoryId' })
     category: Category;

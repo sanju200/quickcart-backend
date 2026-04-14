@@ -8,6 +8,7 @@ import {
     PrimaryGeneratedColumn,
     ManyToOne,
     JoinColumn,
+    Index,
 } from 'typeorm';
 import { Category } from '../category/category.entity';
 
@@ -16,6 +17,7 @@ export class Product {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
+    @Index()
     @Column({ type: 'uuid', nullable: true, name: 'categoryId' })
     categoryId: string;
 
@@ -35,12 +37,14 @@ export class Product {
     @Column({ type: 'text' })
     image: string;
 
+    @Index()
     @Column({ type: 'int', default: 0 })
     stock: number;
 
     @Column({ type: 'int', default: 5 })
     lowStockThreshold: number;
 
+    @Index()
     @CreateDateColumn({ type: 'timestamp' })
     created_at: Date;
 
