@@ -14,9 +14,6 @@ export class Category {
     id: string;
 
     @Column({ type: 'varchar', length: 100, nullable: true })
-    categoryId: string;
-
-    @Column({ type: 'varchar', length: 100 })
     category: string;
 
     @Column({ type: 'varchar', length: 255 })

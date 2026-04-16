@@ -25,7 +25,7 @@ export class ProductService {
 
     async findAll(page: number = 1, limit: number = 20): Promise<{ data: Product[]; total: number }> {
         const [data, total] = await this.productRepository.findAndCount({
-            select: ['id', 'name', 'price', 'image', 'stock', 'categoryId', 'created_at'],
+            select: ['id', 'name', 'price', 'weight', 'image', 'stock', 'categoryId', 'created_at'],
             relations: ['category'],
             skip: (page - 1) * limit,
             take: limit,
@@ -44,6 +44,7 @@ export class ProductService {
                 'product.id',
                 'product.name',
                 'product.price',
+                'product.weight',
                 'product.image',
                 'product.stock',
                 'product.categoryId',
