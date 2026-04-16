@@ -16,13 +16,13 @@ export class Category {
     @Column({ type: 'varchar', length: 100, nullable: true })
     category: string;
 
-    @Column({ type: 'varchar', length: 255 })
+    @Column({ type: 'varchar', length: 255, nullable: true })
     title: string;
 
-    @Column({ type: 'varchar', length: 50 })
+    @Column({ type: 'varchar', length: 50, nullable: true })
     icon: string;
 
-    @Column({ type: 'varchar', length: 50 })
+    @Column({ type: 'varchar', length: 50, nullable: true })
     bgColor: string;
 
     @CreateDateColumn({ type: 'timestamp' })
