@@ -25,16 +25,16 @@ export class Product {
     @JoinColumn({ name: 'categoryId' })
     category: Category;
 
-    @Column({ type: 'varchar', length: 255 })
+    @Column({ type: 'varchar', length: 255, nullable: true })
     name: string;
 
     @Column({ type: 'float', default: 0 })
     price: number;
 
-    @Column({ type: 'varchar', length: 50 })
+    @Column({ type: 'varchar', length: 50, nullable: true })
     weight: string;
 
-    @Column({ type: 'text' })
+    @Column({ type: 'text', nullable: true })
     image: string;
 
     @Index()
