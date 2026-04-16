@@ -45,7 +45,7 @@ import { Offer } from './offer/offer.entity';
         return {
           type: 'postgres',
           host: host,
-          port: parseInt(config.get<string>('DB_PORT') ?? '21331', 10),
+          port: parseInt(config.get<string>('DB_PORT') ?? '5432', 10),
           username: config.get<string>('DB_USER'),
           password: config.get<string>('DB_PASS'),
           database: config.get<string>('DB_NAME'),
