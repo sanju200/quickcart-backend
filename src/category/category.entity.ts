@@ -13,16 +13,16 @@ export class Category {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ type: 'varchar', length: 100, default: 'General' })
+    @Column({ type: 'varchar', length: 100, nullable: true })
     category: string;
 
-    @Column({ type: 'varchar', length: 255, default: 'General' })
+    @Column({ type: 'varchar', length: 255 })
     title: string;
 
-    @Column({ type: 'varchar', length: 50, default: '🥬' })
+    @Column({ type: 'varchar', length: 50 })
     icon: string;
 
-    @Column({ type: 'varchar', length: 50, default: '#ffffff' })
+    @Column({ type: 'varchar', length: 50 })
     bgColor: string;
 
     @CreateDateColumn({ type: 'timestamp' })
