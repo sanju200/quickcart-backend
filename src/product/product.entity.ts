@@ -18,30 +18,30 @@ export class Product {
     id: string;
 
     @Index()
-    @Column({ type: 'uuid', nullable: true, name: 'categoryId' })
+    @Column({ type: 'uuid', nullable: false, name: 'categoryId' })
     categoryId: string;
 
     @ManyToOne(() => Category)
     @JoinColumn({ name: 'categoryId' })
     category: Category;
 
-    @Column({ type: 'varchar', length: 255, nullable: true })
+    @Column({ type: 'varchar', length: 255, nullable: false })
     name: string;
 
-    @Column({ type: 'float', default: 0 })
+    @Column({ type: 'float', default: 0, nullable: false, })
     price: number;
 
-    @Column({ type: 'varchar', length: 50, nullable: true })
+    @Column({ type: 'varchar', length: 50, nullable: false, default: '0' })
     weight: string;
 
-    @Column({ type: 'text', nullable: true })
+    @Column({ type: 'text', nullable: false })
     image: string;
 
     @Index()
-    @Column({ type: 'int', default: 0 })
+    @Column({ type: 'int', default: 0, nullable: false })
     stock: number;
 
-    @Column({ type: 'int', default: 5 })
+    @Column({ type: 'int', default: 5, nullable: false })
     lowStockThreshold: number;
 
     @Index()
