@@ -22,9 +22,6 @@ export class Category {
     @Column({ type: 'varchar', length: 50, nullable: false })
     icon: string;
 
-    @Column({ type: 'varchar', length: 50, nullable: false })
-    bgColor: string;
-
     @CreateDateColumn({ type: 'timestamp' })
     created_at: Date;
 

@@ -13,9 +13,6 @@ export class CreateCategoryDto {
     @IsNotEmpty()
     icon: string;
 
-    @IsString()
-    @IsNotEmpty()
-    bgColor: string;
 }
 
 export class UpdateCategoryDto {
@@ -31,7 +28,4 @@ export class UpdateCategoryDto {
     @IsOptional()
     icon?: string;
 
-    @IsString()
-    @IsOptional()
-    bgColor?: string;
 }
